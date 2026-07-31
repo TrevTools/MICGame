@@ -1,0 +1,502 @@
+:root {
+  color-scheme: dark;
+  --bg: #05070d;
+  --panel: rgba(10, 16, 28, 0.78);
+  --panel-border: rgba(255, 255, 255, 0.12);
+  --text: #eff5ff;
+  --muted: #9db0c9;
+  --accent: #ff8f3d;
+  --accent-2: #56d7ff;
+  --danger: #ff5151;
+  --glow: rgba(255, 143, 61, 0.35);
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top, rgba(86, 215, 255, 0.15), transparent 40%),
+    radial-gradient(circle at 20% 20%, rgba(255, 143, 61, 0.14), transparent 32%),
+    linear-gradient(180deg, #020308, #05070d 48%, #080b14 100%);
+  overflow: hidden;
+}
+
+.shell {
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 14px;
+  padding: 18px;
+}
+
+.hud-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--panel-border);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(11, 16, 29, 0.88), rgba(6, 10, 19, 0.86));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.eyebrow {
+  font-size: 0.74rem;
+  letter-spacing: 0.35em;
+  color: var(--accent-2);
+  margin-bottom: 4px;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  line-height: 1;
+}
+
+.stats {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.stats div {
+  min-width: 88px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.stats span {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.stats strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.3rem;
+}
+
+.game-frame {
+  position: relative;
+  min-height: 0;
+  border-radius: 28px;
+  border: 1px solid var(--panel-border);
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 18%),
+    radial-gradient(circle at 50% 0%, rgba(255, 143, 61, 0.08), transparent 32%),
+    #020307;
+  box-shadow: var(--shadow);
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.cover-screen,
+.radar-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
+.cover-screen {
+  display: grid;
+  align-content: center;
+  gap: 22px;
+  padding: 28px;
+  background:
+    linear-gradient(180deg, rgba(5, 8, 15, 0.76), rgba(3, 5, 10, 0.84)),
+    radial-gradient(circle at top, rgba(255, 143, 61, 0.2), transparent 30%),
+    radial-gradient(circle at 80% 20%, rgba(86, 215, 255, 0.2), transparent 26%),
+    url("../src/img/outpost.png") center / cover no-repeat;
+  backdrop-filter: blur(14px);
+}
+
+.cover-hero {
+  max-width: 860px;
+}
+
+.cover-kicker {
+  color: var(--accent-2);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+}
+
+.cover-hero h2 {
+  margin: 0 0 12px;
+  font-size: clamp(2.2rem, 5vw, 4.8rem);
+  line-height: 0.95;
+}
+
+.cover-hero p {
+  margin: 0;
+  max-width: 760px;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.cover-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 380px);
+  gap: 18px;
+}
+
+.cover-panel {
+  width: auto;
+}
+
+.launch-buttons {
+  display: grid;
+  gap: 12px;
+}
+
+.launch-buttons button,
+.weapon-buttons button {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 14px 16px;
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  font: inherit;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.launch-buttons button:hover,
+.weapon-buttons button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(86, 215, 255, 0.5);
+}
+
+.launch-buttons button:focus-visible,
+.weapon-buttons button:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.launch-buttons button {
+  text-align: left;
+  font-size: 1rem;
+}
+
+.radar-hud {
+  display: block;
+  padding: 18px;
+  pointer-events: none;
+}
+
+.radar-hud .panel {
+  pointer-events: auto;
+}
+
+.weapon-panel {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: min(540px, calc(100vw - 36px));
+}
+
+.intel-panel {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  width: min(340px, calc(100vw - 36px));
+}
+
+.weapon-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.weapon-slot {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 16px;
+  aspect-ratio: 1 / 1;
+  text-align: left;
+  align-content: start;
+}
+
+.weapon-slot.active {
+  border-color: rgba(255, 143, 61, 0.8);
+  box-shadow: 0 0 0 1px rgba(255, 143, 61, 0.45) inset, 0 0 18px rgba(255, 143, 61, 0.2);
+  transform: translateY(-2px);
+}
+
+.weapon-slot-number {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.weapon-slot-frame {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+}
+
+.weapon-slot-icon {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.4));
+}
+
+.weapon-slot-name {
+  font-size: 0.82rem;
+  line-height: 1.15;
+}
+
+.weapon-slot-meta {
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.weapon-slot:is(:hover, :focus-visible) {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+}
+
+.weapon-slot[data-slot-index="4"] .weapon-slot-frame {
+  border-style: dashed;
+}
+
+.weapon-slot[data-slot-index="4"] .weapon-slot-icon {
+  opacity: 0.8;
+  filter: saturate(0.3) brightness(0.95) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.4));
+}
+
+.hint {
+  margin-top: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.intel-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.intel-list li {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.intel-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.92rem;
+}
+
+.intel-meta {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.intel-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.intel-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.cover-screen.hidden,
+.radar-hud.hidden {
+  display: none;
+}
+
+.radar-hud .weapon-panel,
+.radar-hud .intel-panel {
+  backdrop-filter: blur(12px);
+}
+
+.radar-mode .overlay {
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px;
+}
+
+.panel {
+  width: min(300px, 42vw);
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(13, 18, 34, 0.78), rgba(7, 10, 18, 0.65));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.3);
+}
+
+.panel h2 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+}
+
+.panel p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.center-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100vw - 48px));
+  padding: 28px 28px 30px;
+  text-align: center;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(13, 18, 34, 0.92), rgba(7, 10, 18, 0.86));
+  box-shadow: 0 24px 65px rgba(0, 0, 0, 0.45), 0 0 48px var(--glow);
+}
+
+.status-kicker {
+  color: var(--accent-2);
+  font-size: 0.8rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.status-title {
+  font-size: clamp(2rem, 6vw, 3.7rem);
+  font-weight: 700;
+  line-height: 0.95;
+  margin-bottom: 12px;
+}
+
+.status-text {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  body {
+    overflow: auto;
+  }
+
+  .shell {
+    min-height: auto;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .hud-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .overlay {
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .panel {
+    width: min(100%, 420px);
+  }
+
+  .cover-grid,
+  .radar-hud {
+    grid-template-columns: 1fr;
+  }
+
+  .weapon-panel,
+  .intel-panel {
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+
+  .weapon-panel {
+    bottom: 12px;
+  }
+
+  .intel-panel {
+    top: 12px;
+    bottom: auto;
+  }
+
+  .weapon-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

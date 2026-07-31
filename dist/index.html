@@ -1,0 +1,1906 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Skyline Afterburn</title>
+    <style>
+      :root {
+  color-scheme: dark;
+  --bg: #05070d;
+  --panel: rgba(10, 16, 28, 0.78);
+  --panel-border: rgba(255, 255, 255, 0.12);
+  --text: #eff5ff;
+  --muted: #9db0c9;
+  --accent: #ff8f3d;
+  --accent-2: #56d7ff;
+  --danger: #ff5151;
+  --glow: rgba(255, 143, 61, 0.35);
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top, rgba(86, 215, 255, 0.15), transparent 40%),
+    radial-gradient(circle at 20% 20%, rgba(255, 143, 61, 0.14), transparent 32%),
+    linear-gradient(180deg, #020308, #05070d 48%, #080b14 100%);
+  overflow: hidden;
+}
+
+.shell {
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 14px;
+  padding: 18px;
+}
+
+.hud-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--panel-border);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(11, 16, 29, 0.88), rgba(6, 10, 19, 0.86));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.eyebrow {
+  font-size: 0.74rem;
+  letter-spacing: 0.35em;
+  color: var(--accent-2);
+  margin-bottom: 4px;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  line-height: 1;
+}
+
+.stats {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.stats div {
+  min-width: 88px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.stats span {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.stats strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.3rem;
+}
+
+.game-frame {
+  position: relative;
+  min-height: 0;
+  border-radius: 28px;
+  border: 1px solid var(--panel-border);
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 18%),
+    radial-gradient(circle at 50% 0%, rgba(255, 143, 61, 0.08), transparent 32%),
+    #020307;
+  box-shadow: var(--shadow);
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.cover-screen,
+.radar-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
+.cover-screen {
+  display: grid;
+  align-content: center;
+  gap: 22px;
+  padding: 28px;
+  background:
+    linear-gradient(180deg, rgba(5, 8, 15, 0.76), rgba(3, 5, 10, 0.84)),
+    radial-gradient(circle at top, rgba(255, 143, 61, 0.2), transparent 30%),
+    radial-gradient(circle at 80% 20%, rgba(86, 215, 255, 0.2), transparent 26%),
+    url("../src/img/outpost.png") center / cover no-repeat;
+  backdrop-filter: blur(14px);
+}
+
+.cover-hero {
+  max-width: 860px;
+}
+
+.cover-kicker {
+  color: var(--accent-2);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+}
+
+.cover-hero h2 {
+  margin: 0 0 12px;
+  font-size: clamp(2.2rem, 5vw, 4.8rem);
+  line-height: 0.95;
+}
+
+.cover-hero p {
+  margin: 0;
+  max-width: 760px;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.cover-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 380px);
+  gap: 18px;
+}
+
+.cover-panel {
+  width: auto;
+}
+
+.launch-buttons {
+  display: grid;
+  gap: 12px;
+}
+
+.launch-buttons button,
+.weapon-buttons button {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 14px 16px;
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  font: inherit;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.launch-buttons button:hover,
+.weapon-buttons button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(86, 215, 255, 0.5);
+}
+
+.launch-buttons button:focus-visible,
+.weapon-buttons button:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.launch-buttons button {
+  text-align: left;
+  font-size: 1rem;
+}
+
+.radar-hud {
+  display: block;
+  padding: 18px;
+  pointer-events: none;
+}
+
+.radar-hud .panel {
+  pointer-events: auto;
+}
+
+.weapon-panel {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: min(540px, calc(100vw - 36px));
+}
+
+.intel-panel {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  width: min(340px, calc(100vw - 36px));
+}
+
+.weapon-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.weapon-slot {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 16px;
+  aspect-ratio: 1 / 1;
+  text-align: left;
+  align-content: start;
+}
+
+.weapon-slot.active {
+  border-color: rgba(255, 143, 61, 0.8);
+  box-shadow: 0 0 0 1px rgba(255, 143, 61, 0.45) inset, 0 0 18px rgba(255, 143, 61, 0.2);
+  transform: translateY(-2px);
+}
+
+.weapon-slot-number {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.weapon-slot-frame {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+}
+
+.weapon-slot-icon {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.4));
+}
+
+.weapon-slot-name {
+  font-size: 0.82rem;
+  line-height: 1.15;
+}
+
+.weapon-slot-meta {
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.weapon-slot:is(:hover, :focus-visible) {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+}
+
+.weapon-slot[data-slot-index="4"] .weapon-slot-frame {
+  border-style: dashed;
+}
+
+.weapon-slot[data-slot-index="4"] .weapon-slot-icon {
+  opacity: 0.8;
+  filter: saturate(0.3) brightness(0.95) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.4));
+}
+
+.hint {
+  margin-top: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.intel-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.intel-list li {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.intel-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.92rem;
+}
+
+.intel-meta {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.intel-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.intel-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.cover-screen.hidden,
+.radar-hud.hidden {
+  display: none;
+}
+
+.radar-hud .weapon-panel,
+.radar-hud .intel-panel {
+  backdrop-filter: blur(12px);
+}
+
+.radar-mode .overlay {
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px;
+}
+
+.panel {
+  width: min(300px, 42vw);
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(13, 18, 34, 0.78), rgba(7, 10, 18, 0.65));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.3);
+}
+
+.panel h2 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+}
+
+.panel p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.center-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100vw - 48px));
+  padding: 28px 28px 30px;
+  text-align: center;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(13, 18, 34, 0.92), rgba(7, 10, 18, 0.86));
+  box-shadow: 0 24px 65px rgba(0, 0, 0, 0.45), 0 0 48px var(--glow);
+}
+
+.status-kicker {
+  color: var(--accent-2);
+  font-size: 0.8rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.status-title {
+  font-size: clamp(2rem, 6vw, 3.7rem);
+  font-weight: 700;
+  line-height: 0.95;
+  margin-bottom: 12px;
+}
+
+.status-text {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  body {
+    overflow: auto;
+  }
+
+  .shell {
+    min-height: auto;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .hud-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .overlay {
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .panel {
+    width: min(100%, 420px);
+  }
+
+  .cover-grid,
+  .radar-hud {
+    grid-template-columns: 1fr;
+  }
+
+  .weapon-panel,
+  .intel-panel {
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+
+  .weapon-panel {
+    bottom: 12px;
+  }
+
+  .intel-panel {
+    top: 12px;
+    bottom: auto;
+  }
+
+  .weapon-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="hud-bar">
+        <div>
+          <div class="eyebrow" id="modeBadge">SKYLINE AFTERBURN</div>
+          <h1 id="modeTitle">High-speed jet combat</h1>
+        </div>
+        <div class="stats">
+          <div><span id="labelScore">Score</span><strong id="score">0</strong></div>
+          <div><span id="labelLives">Lives</span><strong id="lives">3</strong></div>
+          <div><span id="labelStage">Stage</span><strong id="stage">1</strong></div>
+        </div>
+      </header>
+
+      <main class="game-frame">
+        <canvas id="game" aria-label="Arcade flight shooter"></canvas>
+        <div class="overlay">
+          <section class="panel instructions">
+            <h2 id="panelOneTitle">Controls</h2>
+            <div id="panelOneBody"></div>
+          </section>
+          <section class="panel mission">
+            <h2 id="panelTwoTitle">Mission</h2>
+            <div id="panelTwoBody"></div>
+          </section>
+        </div>
+        <div class="radar-hud hidden" id="radarHud">
+          <section class="panel weapon-panel">
+            <h2>Weapon Control</h2>
+            <p id="selectedWeaponText">Selected weapon: Laser Lance</p>
+            <div class="weapon-buttons" id="weaponButtons"></div>
+            <p class="hint">Use 1-5 or click a box. Press Space to deploy.</p>
+          </section>
+          <section class="panel intel-panel">
+            <h2>Threat Matrix</h2>
+            <ul class="intel-list" id="radarIntelList"></ul>
+          </section>
+        </div>
+        <div class="cover-screen" id="coverScreen">
+          <div class="cover-hero">
+            <div class="cover-kicker">ARCADE / RADAR INTERCEPT</div>
+            <h2>Choose your mission</h2>
+            <p>
+              Fly the classic canyon attack run or switch to radar defense, where incoming threats must
+              be matched with the right countermeasure.
+            </p>
+          </div>
+          <div class="cover-grid">
+            <section class="panel cover-panel">
+              <h2>Launch Options</h2>
+              <div class="launch-buttons">
+                <button id="launchArcade" type="button">Launch Afterburn</button>
+                <button id="launchRadar" type="button">Launch Radar Defense</button>
+              </div>
+            </section>
+          </div>
+        </div>
+        <div class="center-card" id="statusCard">
+          <div class="status-kicker">READY</div>
+          <div class="status-title">Press Enter</div>
+          <div class="status-text">The sky is hostile. Keep moving.</div>
+        </div>
+      </main>
+    </div>
+    <script>
+      (() => {
+  const Skyline = (window.Skyline = window.Skyline || {});
+
+  Skyline.attackTypes = [
+    {
+      id: "drone",
+      name: "Drone Swarm",
+      description: "Fast, low-altitude drones that overwhelm fixed defenses.",
+      color: "#78e6ff",
+      threat: "saturation"
+    },
+    {
+      id: "missile",
+      name: "Guided Missile",
+      description: "High-speed seeker with a narrow but deadly lock window.",
+      color: "#ff8f3d",
+      threat: "speed"
+    },
+    {
+      id: "jammer",
+      name: "Signal Jammer",
+      description: "Scrambles locks and masks follow-up targets.",
+      color: "#8be36f",
+      threat: "electronics"
+    },
+    {
+      id: "bomber",
+      name: "Armor Bomber",
+      description: "Slow, heavy, and resistant to light weapons.",
+      color: "#ff5b5b",
+      threat: "armor"
+    }
+  ];
+
+  Skyline.defenseTypes = [
+    {
+      id: "laser",
+      name: "Laser Lance",
+      description: "Precision beam that deletes fast targets.",
+      color: "#56d7ff",
+      effectiveAgainst: ["drone", "missile"]
+    },
+    {
+      id: "emp",
+      name: "EMP Net",
+      description: "Disrupts electronic threats and soft targets.",
+      color: "#8be36f",
+      effectiveAgainst: ["jammer", "drone"]
+    },
+    {
+      id: "flare",
+      name: "Flare Burst",
+      description: "Breaks missile locks and spoofs seeker logic.",
+      color: "#ffb34d",
+      effectiveAgainst: ["missile", "bomber"]
+    },
+    {
+      id: "rail",
+      name: "Rail Burst",
+      description: "Heavy kinetic blast for armored intruders.",
+      color: "#ff6d6d",
+      effectiveAgainst: ["bomber", "drone"]
+    }
+  ];
+
+  Skyline.weaponSlots = [
+    {
+      slotIndex: 0,
+      name: Skyline.defenseTypes[0].name,
+      description: Skyline.defenseTypes[0].description,
+      color: Skyline.defenseTypes[0].color,
+      defenseId: Skyline.defenseTypes[0].id,
+      isPlaceholder: false
+    },
+    {
+      slotIndex: 1,
+      name: Skyline.defenseTypes[1].name,
+      description: Skyline.defenseTypes[1].description,
+      color: Skyline.defenseTypes[1].color,
+      defenseId: Skyline.defenseTypes[1].id,
+      isPlaceholder: false
+    },
+    {
+      slotIndex: 2,
+      name: Skyline.defenseTypes[2].name,
+      description: Skyline.defenseTypes[2].description,
+      color: Skyline.defenseTypes[2].color,
+      defenseId: Skyline.defenseTypes[2].id,
+      isPlaceholder: false
+    },
+    {
+      slotIndex: 3,
+      name: Skyline.defenseTypes[3].name,
+      description: Skyline.defenseTypes[3].description,
+      color: Skyline.defenseTypes[3].color,
+      defenseId: Skyline.defenseTypes[3].id,
+      isPlaceholder: false
+    },
+    {
+      slotIndex: 4,
+      name: "Empty Slot",
+      description: "Placeholder slot for a future weapon.",
+      color: "#9db0c9",
+      defenseId: null,
+      isPlaceholder: true
+    }
+  ];
+
+  Skyline.placeholderWeaponIconSvg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Placeholder weapon icon">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#56d7ff"/>
+          <stop offset="100%" stop-color="#ff8f3d"/>
+        </linearGradient>
+      </defs>
+      <rect x="8" y="8" width="80" height="80" rx="18" fill="#0b1220" stroke="url(#g)" stroke-width="4"/>
+      <path d="M24 57 L48 22 L72 57 Z" fill="url(#g)" opacity="0.95"/>
+      <circle cx="48" cy="60" r="10" fill="#eff5ff" opacity="0.95"/>
+      <path d="M48 14v14M48 68v14M14 48h14M68 48h14" stroke="#9db0c9" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+    </svg>
+  `.trim();
+  Skyline.placeholderWeaponIconDataUri = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(Skyline.placeholderWeaponIconSvg)}`;
+
+  Skyline.modeMeta = {
+    afterburn: {
+      badge: "SKYLINE AFTERBURN",
+      title: "High-speed jet combat",
+      score: "Score",
+      lives: "Lives",
+      stage: "Stage"
+    },
+    radar: {
+      badge: "RADAR DEFENSE",
+      title: "Long-range / short-range intercept",
+      score: "Score",
+      lives: "Shield",
+      stage: "Wave"
+    }
+  };
+
+  Skyline.keys = new Set();
+  Skyline.state = {
+    screen: "cover",
+    activeMode: "afterburn",
+    width: 0,
+    height: 0,
+    horizon: 0,
+    lastTime: 0,
+    stars: [],
+    afterburn: {
+      running: false,
+      gameOver: false,
+      score: 0,
+      lives: 3,
+      stage: 1,
+      spawnTimer: 0,
+      shotCooldown: 0,
+      shake: 0,
+      flash: 0,
+      distance: 0,
+      player: null,
+      enemies: [],
+      shots: [],
+      explosions: []
+    },
+    radar: {
+      running: false,
+      gameOver: false,
+      score: 0,
+      shield: 5,
+      wave: 1,
+      spawnTimer: 0,
+      spawnRemaining: 0,
+      cooldown: 0,
+      selectedWeaponSlot: 0,
+      selectedDefenseId: "laser",
+      attacks: [],
+      explosions: [],
+      scan: 0,
+      alert: "",
+      waveClearTimer: 0,
+      flash: 0
+    }
+  };
+
+  function bindDom() {
+    const dom = {
+      canvas: document.getElementById("game"),
+      modeBadge: document.getElementById("modeBadge"),
+      modeTitle: document.getElementById("modeTitle"),
+      labelScore: document.getElementById("labelScore"),
+      labelLives: document.getElementById("labelLives"),
+      labelStage: document.getElementById("labelStage"),
+      scoreEl: document.getElementById("score"),
+      livesEl: document.getElementById("lives"),
+      stageEl: document.getElementById("stage"),
+      panelOneTitle: document.getElementById("panelOneTitle"),
+      panelOneBody: document.getElementById("panelOneBody"),
+      panelTwoTitle: document.getElementById("panelTwoTitle"),
+      panelTwoBody: document.getElementById("panelTwoBody"),
+      coverScreen: document.getElementById("coverScreen"),
+      radarHud: document.getElementById("radarHud"),
+      launchArcade: document.getElementById("launchArcade"),
+      launchRadar: document.getElementById("launchRadar"),
+      radarIntelList: document.getElementById("radarIntelList"),
+      weaponButtons: document.getElementById("weaponButtons"),
+      selectedWeaponText: document.getElementById("selectedWeaponText"),
+      statusCard: document.getElementById("statusCard")
+    };
+
+    dom.statusTitle = dom.statusCard.querySelector(".status-title");
+    dom.statusText = dom.statusCard.querySelector(".status-text");
+    dom.statusKicker = dom.statusCard.querySelector(".status-kicker");
+    Skyline.dom = dom;
+    Skyline.ctx = dom.canvas.getContext("2d");
+  }
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function circleHit(a, b) {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    const radius = a.radius + b.radius;
+    return dx * dx + dy * dy < radius * radius;
+  }
+
+  function ensureStars() {
+    const state = Skyline.state;
+    if (state.stars.length > 0) {
+      return;
+    }
+    for (let i = 0; i < 180; i += 1) {
+      state.stars.push({
+        x: Math.random(),
+        y: Math.random(),
+        z: 0.2 + Math.random() * 0.8,
+        speed: 0.15 + Math.random() * 0.45
+      });
+    }
+  }
+
+  function resizeCanvas() {
+    const state = Skyline.state;
+    const rect = Skyline.dom.canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    Skyline.dom.canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+    Skyline.dom.canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+    Skyline.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    state.width = rect.width;
+    state.height = rect.height;
+    state.horizon = rect.height * 0.33;
+    ensureStars();
+  }
+
+  function getAttackDefinition(id) {
+    return Skyline.attackTypes.find((attack) => attack.id === id);
+  }
+
+  function getDefenseDefinition(id) {
+    return Skyline.defenseTypes.find((defense) => defense.id === id);
+  }
+
+  function effectiveDefensesForAttack(attackId) {
+    return Skyline.defenseTypes.filter((defense) => defense.effectiveAgainst.includes(attackId));
+  }
+
+  function buildIntelLists() {
+    const renderList = (container) => {
+      container.innerHTML = Skyline.attackTypes.map((attack) => {
+        const defenseNames = effectiveDefensesForAttack(attack.id).map((defense) => defense.name);
+        const tags = defenseNames.map((name) => `<span class="intel-tag">${name}</span>`).join("");
+        return `
+          <li>
+            <div class="intel-title"><strong>${attack.name}</strong><span>${attack.threat}</span></div>
+            <div class="intel-meta">${attack.description}</div>
+            <div class="intel-tag-row">${tags}</div>
+          </li>
+        `;
+      }).join("");
+    };
+
+    if (Skyline.dom.radarIntelList) {
+      renderList(Skyline.dom.radarIntelList);
+    }
+  }
+
+  function buildWeaponButtons() {
+    Skyline.dom.weaponButtons.innerHTML = Skyline.weaponSlots.map((slot) => `
+      <button type="button" class="weapon-slot" data-slot-index="${slot.slotIndex}">
+        <span class="weapon-slot-number">${slot.slotIndex + 1}</span>
+        <span class="weapon-slot-frame">
+          <img class="weapon-slot-icon" src="${Skyline.placeholderWeaponIconDataUri}" alt="${slot.name} icon" />
+        </span>
+        <span class="weapon-slot-name">${slot.name}</span>
+        <span class="weapon-slot-meta">${slot.isPlaceholder ? "Locked" : slot.description}</span>
+      </button>
+    `).join("");
+
+    Skyline.dom.weaponButtons.querySelectorAll("button").forEach((button) => {
+      button.addEventListener("click", () => selectWeaponSlot(Number(button.dataset.slotIndex)));
+    });
+  }
+
+  function selectWeaponSlot(slotIndex) {
+    const slot = Skyline.weaponSlots[clamp(slotIndex, 0, Skyline.weaponSlots.length - 1)];
+    const radar = Skyline.state.radar;
+    radar.selectedWeaponSlot = slot.slotIndex;
+    radar.selectedDefenseId = slot.defenseId;
+    Skyline.dom.selectedWeaponText.textContent = slot.isPlaceholder
+      ? `Selected slot: ${slot.name}`
+      : `Selected weapon: ${slot.name}`;
+    Skyline.dom.weaponButtons.querySelectorAll("button").forEach((button) => {
+      button.classList.toggle("active", Number(button.dataset.slotIndex) === slot.slotIndex);
+    });
+  }
+
+  function showStatus(kicker, title, text) {
+    Skyline.dom.statusKicker.textContent = kicker;
+    Skyline.dom.statusTitle.textContent = title;
+    Skyline.dom.statusText.textContent = text;
+    Skyline.dom.statusCard.classList.remove("hidden");
+  }
+
+  function hideStatus() {
+    Skyline.dom.statusCard.classList.add("hidden");
+  }
+
+  function renderModeUi() {
+    const meta = Skyline.modeMeta[Skyline.state.activeMode];
+    Skyline.dom.modeBadge.textContent = meta.badge;
+    Skyline.dom.modeTitle.textContent = meta.title;
+
+    if (Skyline.state.activeMode === "afterburn") {
+      Skyline.dom.panelOneTitle.textContent = "Controls";
+      Skyline.dom.panelOneBody.innerHTML = `
+        <p>Move with WASD or the arrow keys.</p>
+        <p>Press Space to fire. Hold Shift to boost.</p>
+        <p>Press Enter to start or restart.</p>
+      `;
+      Skyline.dom.panelTwoTitle.textContent = "Mission";
+      Skyline.dom.panelTwoBody.innerHTML = `
+        <p>Cut through the canyon, destroy enemy craft, and survive as long as you can.</p>
+      `;
+    } else {
+      Skyline.dom.panelOneTitle.textContent = "Controls";
+      Skyline.dom.panelOneBody.innerHTML = `
+        <p>Use 1-5 or click a box to change the active slot.</p>
+        <p>Press Space to deploy the selected countermeasure.</p>
+        <p>Watch both radar screens and stop the attack before impact.</p>
+      `;
+      Skyline.dom.panelTwoTitle.textContent = "Threat Matrix";
+      Skyline.dom.panelTwoBody.innerHTML = `
+        <p>Long-range radar shows early contacts. Short-range radar is the final lock window.</p>
+        <p>Match the selected slot to the incoming attack type for a clean intercept.</p>
+      `;
+    }
+  }
+
+  function updateHud() {
+    const meta = Skyline.modeMeta[Skyline.state.activeMode];
+    Skyline.dom.labelScore.textContent = meta.score;
+    Skyline.dom.labelLives.textContent = meta.lives;
+    Skyline.dom.labelStage.textContent = meta.stage;
+
+    if (Skyline.state.activeMode === "afterburn") {
+      Skyline.dom.scoreEl.textContent = String(Skyline.state.afterburn.score);
+      Skyline.dom.livesEl.textContent = String(Skyline.state.afterburn.lives);
+      Skyline.dom.stageEl.textContent = String(Skyline.state.afterburn.stage);
+    } else {
+      Skyline.dom.scoreEl.textContent = String(Skyline.state.radar.score);
+      Skyline.dom.livesEl.textContent = String(Skyline.state.radar.shield);
+      Skyline.dom.stageEl.textContent = String(Skyline.state.radar.wave);
+    }
+  }
+
+  Skyline.common = {
+    bindDom,
+    clamp,
+    circleHit,
+    ensureStars,
+    resizeCanvas,
+    buildIntelLists,
+    buildWeaponButtons,
+    selectWeaponSlot,
+    showStatus,
+    hideStatus,
+    renderModeUi,
+    updateHud,
+    getAttackDefinition,
+    getDefenseDefinition,
+    effectiveDefensesForAttack
+  };
+})();
+
+
+(() => {
+  const Skyline = window.Skyline;
+  const { clamp, circleHit, showStatus, hideStatus, updateHud } = Skyline.common;
+  const state = Skyline.state;
+
+  function spawnAfterburnEnemy(laneBias = Math.random(), depthBias = Math.random(), seeded = false) {
+    const afterburn = state.afterburn;
+    const laneWidth = state.width * 0.12;
+    const laneCenter = state.width * (0.22 + laneBias * 0.56);
+    const offset = (Math.random() - 0.5) * laneWidth * 1.4;
+    const speedBase = 120 + afterburn.stage * 22 + depthBias * 160;
+    afterburn.enemies.push({
+      x: laneCenter + offset,
+      y: -60 - Math.random() * 220,
+      vx: (Math.random() - 0.5) * (35 + afterburn.stage * 4),
+      vy: speedBase,
+      radius: seeded ? 18 : 20 + Math.random() * 8,
+      weave: Math.random() * Math.PI * 2,
+      hp: seeded ? 1 : 1 + Math.floor(Math.random() * (afterburn.stage > 3 ? 2 : 1)),
+      color: seeded ? "#78e6ff" : ["#ff8f3d", "#ff5b5b", "#8be36f"][Math.floor(Math.random() * 3)]
+    });
+  }
+
+  function spawnOpeningWave() {
+    for (let i = 0; i < 4; i += 1) {
+      spawnAfterburnEnemy(0.18 + i * 0.18, 0.2 + i * 0.11, true);
+    }
+  }
+
+  function resetAfterburn() {
+    const afterburn = state.afterburn;
+    afterburn.running = true;
+    afterburn.gameOver = false;
+    afterburn.score = 0;
+    afterburn.lives = 3;
+    afterburn.stage = 1;
+    afterburn.spawnTimer = 0;
+    afterburn.shotCooldown = 0;
+    afterburn.shake = 0;
+    afterburn.flash = 0;
+    afterburn.distance = 0;
+    afterburn.enemies = [];
+    afterburn.shots = [];
+    afterburn.explosions = [];
+    afterburn.player = {
+      x: state.width * 0.5,
+      y: state.height * 0.72,
+      vx: 0,
+      vy: 0,
+      angle: 0,
+      boost: false,
+      invuln: 0
+    };
+    hideStatus();
+    updateHud();
+    spawnOpeningWave();
+  }
+
+  function fireAfterburnShot() {
+    const afterburn = state.afterburn;
+    if (afterburn.shotCooldown > 0 || !afterburn.running || !afterburn.player) {
+      return;
+    }
+    afterburn.shotCooldown = afterburn.player.boost ? 0.1 : 0.16;
+    afterburn.shots.push({
+      x: afterburn.player.x,
+      y: afterburn.player.y - 34,
+      vy: -780,
+      radius: 5
+    });
+    afterburn.flash = 0.08;
+  }
+
+  function explodeAfterburn(x, y, color = "#ff8f3d", power = 1) {
+    const afterburn = state.afterburn;
+    const amount = 10 + Math.floor(14 * power);
+    for (let i = 0; i < amount; i += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 90 + Math.random() * (220 * power);
+      afterburn.explosions.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 0.45 + Math.random() * 0.35,
+        color
+      });
+    }
+    afterburn.shake = Math.min(0.35, afterburn.shake + 0.12 * power);
+  }
+
+  function updateAfterburnPlayer(dt) {
+    const afterburn = state.afterburn;
+    const thrust = Skyline.keys.has("Shift") ? 1.55 : 1;
+    afterburn.player.boost = Skyline.keys.has("Shift");
+    const accel = 920 * thrust;
+    let ax = 0;
+    let ay = 0;
+
+    if (Skyline.keys.has("ArrowLeft") || Skyline.keys.has("a") || Skyline.keys.has("A")) {
+      ax -= accel;
+    }
+    if (Skyline.keys.has("ArrowRight") || Skyline.keys.has("d") || Skyline.keys.has("D")) {
+      ax += accel;
+    }
+    if (Skyline.keys.has("ArrowUp") || Skyline.keys.has("w") || Skyline.keys.has("W")) {
+      ay -= accel;
+    }
+    if (Skyline.keys.has("ArrowDown") || Skyline.keys.has("s") || Skyline.keys.has("S")) {
+      ay += accel;
+    }
+
+    afterburn.player.vx += ax * dt;
+    afterburn.player.vy += ay * dt;
+    afterburn.player.vx *= Math.pow(0.83, dt * 60);
+    afterburn.player.vy *= Math.pow(0.83, dt * 60);
+    afterburn.player.x += afterburn.player.vx * dt;
+    afterburn.player.y += afterburn.player.vy * dt;
+
+    const minX = state.width * 0.1;
+    const maxX = state.width * 0.9;
+    const minY = state.horizon + 60;
+    const maxY = state.height - 58;
+
+    if (afterburn.player.x < minX) {
+      afterburn.player.x = minX;
+      afterburn.player.vx *= -0.45;
+    }
+    if (afterburn.player.x > maxX) {
+      afterburn.player.x = maxX;
+      afterburn.player.vx *= -0.45;
+    }
+    if (afterburn.player.y < minY) {
+      afterburn.player.y = minY;
+      afterburn.player.vy *= -0.35;
+    }
+    if (afterburn.player.y > maxY) {
+      afterburn.player.y = maxY;
+      afterburn.player.vy *= -0.35;
+    }
+
+    afterburn.player.angle = clamp(afterburn.player.vx / 700, -0.45, 0.45);
+    if (afterburn.player.invuln > 0) {
+      afterburn.player.invuln -= dt;
+    }
+  }
+
+  function updateAfterburn(dt) {
+    const afterburn = state.afterburn;
+    if (!afterburn.running) {
+      return;
+    }
+
+    afterburn.distance += dt * (240 + afterburn.stage * 18 + (afterburn.player && afterburn.player.boost ? 90 : 0));
+    if (afterburn.distance > afterburn.stage * 1600) {
+      afterburn.stage += 1;
+      afterburn.distance = 0;
+      showStatus("STAGE CLEAR", `Sector ${afterburn.stage}`, "Enemy patrols are getting heavier.");
+      setTimeout(() => {
+        if (afterburn.running && !afterburn.gameOver && state.activeMode === "afterburn") {
+          hideStatus();
+        }
+      }, 1000);
+      updateHud();
+    }
+
+    afterburn.shotCooldown = Math.max(0, afterburn.shotCooldown - dt);
+    afterburn.spawnTimer -= dt;
+    afterburn.shake = Math.max(0, afterburn.shake - dt * 1.6);
+    afterburn.flash = Math.max(0, afterburn.flash - dt);
+
+    if (Skyline.keys.has(" ")) {
+      fireAfterburnShot();
+    }
+
+    updateAfterburnPlayer(dt);
+
+    if (afterburn.spawnTimer <= 0) {
+      const spacing = Math.max(0.28, 0.9 - afterburn.stage * 0.05);
+      afterburn.spawnTimer = spacing + Math.random() * 0.6;
+      spawnAfterburnEnemy();
+      if (afterburn.stage >= 3 && Math.random() > 0.45) {
+        spawnAfterburnEnemy(Math.random(), Math.random());
+      }
+    }
+
+    for (const star of state.stars) {
+      star.y += dt * star.speed * (0.1 + afterburn.stage * 0.02);
+      if (star.y > 1) {
+        star.y -= 1;
+        star.x = Math.random();
+      }
+    }
+
+    for (const shot of afterburn.shots) {
+      shot.y += shot.vy * dt;
+    }
+    afterburn.shots = afterburn.shots.filter((shot) => shot.y > -40);
+
+    for (const enemy of afterburn.enemies) {
+      enemy.weave += dt * (1.5 + afterburn.stage * 0.2);
+      enemy.x += enemy.vx * dt + Math.sin(enemy.weave) * 46 * dt;
+      enemy.y += enemy.vy * dt;
+      enemy.x = clamp(enemy.x, state.width * 0.08, state.width * 0.92);
+    }
+    afterburn.enemies = afterburn.enemies.filter((enemy) => enemy.y < state.height + 120 && enemy.hp > 0);
+
+    for (const shot of afterburn.shots) {
+      for (const enemy of afterburn.enemies) {
+        if (enemy.hp <= 0) {
+          continue;
+        }
+        const target = { x: enemy.x, y: enemy.y, radius: enemy.radius };
+        if (circleHit(shot, target)) {
+          shot.y = -999;
+          enemy.hp -= 1;
+          if (enemy.hp <= 0) {
+            explodeAfterburn(enemy.x, enemy.y, enemy.color, 1);
+            afterburn.score += 120;
+          } else {
+            explodeAfterburn(enemy.x, enemy.y, "#ffffff", 0.4);
+            afterburn.score += 40;
+          }
+          updateHud();
+          break;
+        }
+      }
+    }
+
+    afterburn.shots = afterburn.shots.filter((shot) => shot.y > -200);
+
+    if (afterburn.player.invuln <= 0) {
+      for (const enemy of afterburn.enemies) {
+        const playerCircle = { x: afterburn.player.x, y: afterburn.player.y, radius: 24 };
+        const enemyCircle = { x: enemy.x, y: enemy.y, radius: enemy.radius };
+        if (circleHit(playerCircle, enemyCircle) || (enemy.y > state.height - 48 && Math.abs(enemy.x - afterburn.player.x) < 34)) {
+          enemy.hp = 0;
+          explodeAfterburn(afterburn.player.x, afterburn.player.y, "#56d7ff", 1.1);
+          afterburn.lives -= 1;
+          afterburn.player.invuln = 1.4;
+          afterburn.shake = 0.35;
+          updateHud();
+          if (afterburn.lives <= 0) {
+            Skyline.endCurrentMode("MISSION FAILED", "Game Over", "Press Enter to launch again.");
+          }
+          break;
+        }
+      }
+    }
+
+    for (const boom of afterburn.explosions) {
+      boom.x += boom.vx * dt;
+      boom.y += boom.vy * dt;
+      boom.vx *= Math.pow(0.88, dt * 60);
+      boom.vy *= Math.pow(0.88, dt * 60);
+      boom.life -= dt;
+    }
+    afterburn.explosions = afterburn.explosions.filter((boom) => boom.life > 0);
+  }
+
+  function drawAfterburnScene() {
+    const ctx = Skyline.ctx;
+    const afterburn = state.afterburn;
+    const shakeX = (Math.random() - 0.5) * afterburn.shake * 10;
+    const shakeY = (Math.random() - 0.5) * afterburn.shake * 8;
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+
+    const sky = ctx.createLinearGradient(0, 0, 0, state.horizon + 40);
+    sky.addColorStop(0, "#07111f");
+    sky.addColorStop(0.55, "#0b1629");
+    sky.addColorStop(1, "#13263c");
+    ctx.fillStyle = sky;
+    ctx.fillRect(-20, -20, state.width + 40, state.horizon + 80);
+
+    const glow = ctx.createRadialGradient(state.width * 0.52, state.horizon * 0.5, 20, state.width * 0.5, state.horizon * 0.45, state.width * 0.6);
+    glow.addColorStop(0, "rgba(86, 215, 255, 0.12)");
+    glow.addColorStop(1, "rgba(86, 215, 255, 0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, state.width, state.horizon + 40);
+
+    ctx.fillStyle = "#020307";
+    ctx.beginPath();
+    ctx.moveTo(0, state.horizon + 40);
+    const ridgeCount = 14;
+    for (let i = 0; i <= ridgeCount; i += 1) {
+      const t = i / ridgeCount;
+      const x = t * state.width;
+      const height = 52 + Math.sin(t * 8 + afterburn.distance * 0.001) * 18 + Math.cos(t * 4 + afterburn.stage) * 12;
+      ctx.lineTo(x, state.horizon + 40 - height);
+    }
+    ctx.lineTo(state.width, state.height);
+    ctx.lineTo(0, state.height);
+    ctx.closePath();
+    ctx.fill();
+
+    const roadTop = state.horizon + 48;
+    ctx.fillStyle = "#05070d";
+    ctx.fillRect(0, roadTop, state.width, state.height - roadTop);
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.09)";
+    ctx.lineWidth = 1;
+    const laneCount = 10;
+    for (let i = 0; i <= laneCount; i += 1) {
+      const t = i / laneCount;
+      const topX = state.width * 0.5 + (t - 0.5) * state.width * 0.2;
+      const bottomX = state.width * 0.5 + (t - 0.5) * state.width * 1.05;
+      ctx.beginPath();
+      ctx.moveTo(topX, roadTop + 4);
+      ctx.lineTo(bottomX, state.height);
+      ctx.stroke();
+    }
+
+    const bandCount = 18;
+    for (let i = 0; i < bandCount; i += 1) {
+      const t = ((afterburn.distance * 0.003 + i / bandCount) % 1) * 0.95 + 0.05;
+      const y = roadTop + t * (state.height - roadTop);
+      ctx.strokeStyle = `rgba(255, 143, 61, ${0.18 + t * 0.35})`;
+      ctx.lineWidth = 1 + t * 2.5;
+      ctx.beginPath();
+      ctx.moveTo(state.width * 0.15, y);
+      ctx.lineTo(state.width * 0.85, y);
+      ctx.stroke();
+    }
+
+    for (const enemy of afterburn.enemies) {
+      ctx.save();
+      ctx.translate(enemy.x, enemy.y);
+      ctx.rotate(Math.sin(enemy.weave) * 0.18);
+      ctx.fillStyle = enemy.color;
+      ctx.beginPath();
+      ctx.moveTo(0, -enemy.radius * 1.35);
+      ctx.lineTo(enemy.radius * 1.05, enemy.radius * 0.9);
+      ctx.lineTo(0, enemy.radius * 0.2);
+      ctx.lineTo(-enemy.radius * 1.05, enemy.radius * 0.9);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "rgba(255, 255, 255, 0.84)";
+      ctx.beginPath();
+      ctx.ellipse(0, -enemy.radius * 0.15, enemy.radius * 0.22, enemy.radius * 0.32, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    for (const shot of afterburn.shots) {
+      const gradient = ctx.createLinearGradient(shot.x, shot.y - 14, shot.x, shot.y + 10);
+      gradient.addColorStop(0, "rgba(255, 255, 255, 0)");
+      gradient.addColorStop(0.35, "rgba(86, 215, 255, 0.95)");
+      gradient.addColorStop(1, "rgba(255, 143, 61, 0.1)");
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(shot.x, shot.y + 16);
+      ctx.lineTo(shot.x, shot.y - 20);
+      ctx.stroke();
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(shot.x, shot.y, shot.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    for (const boom of afterburn.explosions) {
+      const alpha = Math.max(0, boom.life / 0.8);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = boom.color;
+      ctx.beginPath();
+      ctx.arc(boom.x, boom.y, 2.5 + (1 - alpha) * 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = alpha * 0.6;
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(boom.x, boom.y, 1.5 + (1 - alpha) * 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    const player = afterburn.player;
+    if (player) {
+      ctx.save();
+      ctx.translate(player.x, player.y);
+      ctx.rotate(player.angle);
+      if (player.invuln > 0) {
+        ctx.globalAlpha = 0.45 + Math.sin(player.invuln * 30) * 0.15;
+      }
+
+      ctx.fillStyle = "#9ae4ff";
+      ctx.beginPath();
+      ctx.moveTo(0, -28);
+      ctx.lineTo(16, 18);
+      ctx.lineTo(0, 10);
+      ctx.lineTo(-16, 18);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#ff8f3d";
+      ctx.beginPath();
+      ctx.moveTo(0, -20);
+      ctx.lineTo(9, 6);
+      ctx.lineTo(0, 2);
+      ctx.lineTo(-9, 6);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.ellipse(0, -8, 5, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (player.boost) {
+        const flame = ctx.createLinearGradient(0, 18, 0, 56);
+        flame.addColorStop(0, "rgba(255, 214, 92, 0.95)");
+        flame.addColorStop(0.5, "rgba(255, 143, 61, 0.8)");
+        flame.addColorStop(1, "rgba(255, 81, 81, 0)");
+        ctx.fillStyle = flame;
+        ctx.beginPath();
+        ctx.moveTo(0, 18);
+        ctx.lineTo(9, 56);
+        ctx.lineTo(0, 44);
+        ctx.lineTo(-9, 56);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    const frame = ctx.createLinearGradient(0, 0, 0, state.height);
+    frame.addColorStop(0, "rgba(255, 255, 255, 0.03)");
+    frame.addColorStop(0.75, "rgba(255, 255, 255, 0)");
+    ctx.fillStyle = frame;
+    ctx.fillRect(0, 0, state.width, state.height);
+
+    ctx.strokeStyle = "rgba(86, 215, 255, 0.18)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(state.width * 0.5, state.height * 0.82, state.width * 0.32, Math.PI * 1.05, Math.PI * 1.95);
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(255, 143, 61, 0.22)";
+    ctx.beginPath();
+    ctx.arc(state.width * 0.5, state.height * 0.9, state.width * 0.44, Math.PI * 1.08, Math.PI * 1.92);
+    ctx.stroke();
+
+    if (afterburn.flash > 0) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${afterburn.flash * 0.45})`;
+      ctx.fillRect(0, 0, state.width, state.height);
+    }
+
+    ctx.restore();
+  }
+
+  Skyline.afterburn = {
+    resetAfterburn,
+    spawnAfterburnEnemy,
+    spawnOpeningWave,
+    fireAfterburnShot,
+    explodeAfterburn,
+    updateAfterburn,
+    drawAfterburnScene
+  };
+})();
+
+
+(() => {
+  const Skyline = window.Skyline;
+  const { clamp, showStatus, hideStatus, updateHud } = Skyline.common;
+  const state = Skyline.state;
+
+  function resetRadar() {
+    const radar = state.radar;
+    radar.running = true;
+    radar.gameOver = false;
+    radar.score = 0;
+    radar.shield = 5;
+    radar.wave = 1;
+    radar.spawnTimer = 0;
+    radar.spawnRemaining = 0;
+    radar.cooldown = 0;
+    radar.selectedWeaponSlot = 0;
+    radar.selectedDefenseId = "laser";
+    radar.attacks = [];
+    radar.explosions = [];
+    radar.scan = 0;
+    radar.alert = "Hold the line. Incoming signatures are being painted.";
+    radar.waveClearTimer = 0;
+    radar.flash = 0;
+    Skyline.common.selectWeaponSlot(radar.selectedWeaponSlot);
+    hideStatus();
+    updateHud();
+    prepareRadarWave();
+  }
+
+  function prepareRadarWave() {
+    const radar = state.radar;
+    radar.spawnRemaining = 4 + radar.wave * 2;
+    radar.spawnTimer = 0.25;
+    radar.attacks = [];
+    radar.waveClearTimer = 0;
+    radar.alert = `Wave ${radar.wave} detected. Match weapons to threats.`;
+    updateHud();
+  }
+
+  function spawnRadarAttack() {
+    const radar = state.radar;
+    const attackPool = radar.wave < 2 ? ["drone", "missile"] : radar.wave < 4 ? ["drone", "missile", "jammer"] : ["drone", "missile", "jammer", "bomber"];
+    const attackId = attackPool[Math.floor(Math.random() * attackPool.length)];
+    const definition = Skyline.common.getAttackDefinition(attackId);
+    radar.attacks.push({
+      id: `${Date.now()}-${Math.random()}`,
+      typeId: definition.id,
+      name: definition.name,
+      color: definition.color,
+      range: 1.15 + Math.random() * 0.45,
+      angle: Math.random() * Math.PI * 2,
+      speed: 0.12 + Math.random() * 0.1 + radar.wave * 0.012,
+      strength: definition.id === "bomber" ? 2 : 1,
+      signature: definition.threat
+    });
+  }
+
+  function explodeRadar(x, y, color = "#56d7ff", power = 1) {
+    const radar = state.radar;
+    const amount = 8 + Math.floor(10 * power);
+    for (let i = 0; i < amount; i += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 70 + Math.random() * (180 * power);
+      radar.explosions.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 0.35 + Math.random() * 0.3,
+        color
+      });
+    }
+    radar.flash = Math.min(0.22, radar.flash + 0.08 * power);
+  }
+
+  function deployRadarDefense() {
+    const radar = state.radar;
+    if (!radar.running || radar.cooldown > 0) {
+      return;
+    }
+
+    radar.cooldown = 0.22;
+    const defense = radar.selectedDefenseId ? Skyline.common.getDefenseDefinition(radar.selectedDefenseId) : null;
+    if (!defense) {
+      radar.alert = "No weapon equipped in this slot.";
+      radar.flash = 0.05;
+      return;
+    }
+    const targetIndex = radar.attacks.findIndex((attack) => attack.range <= 0.72 && defense.effectiveAgainst.includes(attack.typeId));
+
+    if (targetIndex === -1) {
+      radar.alert = `${defense.name} found no valid target.`;
+      radar.flash = 0.05;
+      return;
+    }
+
+    const target = radar.attacks[targetIndex];
+    radar.attacks.splice(targetIndex, 1);
+    radar.score += target.typeId === "bomber" ? 150 : 100;
+    radar.alert = `${defense.name} intercepted ${target.name}.`;
+    explodeRadar(target.range * 10, target.angle, defense.color, 1);
+    updateHud();
+  }
+
+  function updateRadar(dt) {
+    const radar = state.radar;
+    if (!radar.running) {
+      return;
+    }
+
+    radar.scan += dt * 1.3;
+    radar.cooldown = Math.max(0, radar.cooldown - dt);
+    radar.flash = Math.max(0, radar.flash - dt);
+    radar.spawnTimer -= dt;
+
+    if (radar.spawnRemaining > 0 && radar.spawnTimer <= 0) {
+      spawnRadarAttack();
+      radar.spawnRemaining -= 1;
+      radar.spawnTimer = Math.max(0.22, 0.72 - radar.wave * 0.05) + Math.random() * 0.32;
+    }
+
+    for (const star of state.stars) {
+      star.y += dt * star.speed * 0.16;
+      if (star.y > 1) {
+        star.y -= 1;
+        star.x = Math.random();
+      }
+    }
+
+    for (const attack of radar.attacks) {
+      attack.range -= dt * attack.speed;
+    }
+
+    const missedAttacks = radar.attacks.filter((attack) => attack.range <= 0);
+    if (missedAttacks.length > 0) {
+      radar.attacks = radar.attacks.filter((attack) => attack.range > 0);
+      for (const attack of missedAttacks) {
+        radar.shield -= attack.strength;
+        radar.alert = `${attack.name} struck the perimeter.`;
+        explodeRadar(state.width * 0.5, state.height * 0.55, attack.color, 0.9);
+        updateHud();
+        if (radar.shield <= 0) {
+          Skyline.endCurrentMode("BREACH CONFIRMED", "Radar lost", "Press Enter to relaunch the defense.");
+          return;
+        }
+      }
+    }
+
+    if (radar.spawnRemaining === 0 && radar.attacks.length === 0) {
+      if (radar.waveClearTimer === 0) {
+        radar.waveClearTimer = 1.05;
+        showStatus("WAVE CLEAR", `Wave ${radar.wave}`, "All contacts are neutralized. Next surge incoming.");
+      } else {
+        radar.waveClearTimer -= dt;
+        if (radar.waveClearTimer <= 0) {
+          radar.wave += 1;
+          radar.score += 180;
+          radar.alert = `Wave ${radar.wave} approaching.`;
+          updateHud();
+          hideStatus();
+          prepareRadarWave();
+        }
+      }
+    } else {
+      radar.waveClearTimer = 0;
+    }
+
+    for (const boom of radar.explosions) {
+      boom.x += boom.vx * dt;
+      boom.y += boom.vy * dt;
+      boom.vx *= Math.pow(0.88, dt * 60);
+      boom.vy *= Math.pow(0.88, dt * 60);
+      boom.life -= dt;
+    }
+    radar.explosions = radar.explosions.filter((boom) => boom.life > 0);
+  }
+
+  function drawRadarBackground() {
+    const ctx = Skyline.ctx;
+    ctx.clearRect(0, 0, state.width, state.height);
+    const background = ctx.createLinearGradient(0, 0, 0, state.height);
+    background.addColorStop(0, "#07111f");
+    background.addColorStop(1, "#05070d");
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, state.width, state.height);
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+    for (const star of state.stars) {
+      const x = star.x * state.width;
+      const y = star.y * (state.horizon * 0.9);
+      const size = 1 + star.z * 1.6;
+      ctx.globalAlpha = 0.25 + star.z * 0.7;
+      ctx.fillRect(x, y, size, size);
+    }
+    ctx.globalAlpha = 1;
+
+    const top = state.height * 0.08;
+    const leftCenter = { x: state.width * 0.32, y: state.height * 0.54 };
+    const rightCenter = { x: state.width * 0.68, y: state.height * 0.54 };
+    const radius = Math.min(state.width, state.height) * 0.23;
+
+    const paintScope = (center, label, focusLimit, accent, showShortRange) => {
+      ctx.save();
+      ctx.translate(center.x, center.y);
+
+      const ring = ctx.createRadialGradient(0, 0, 18, 0, 0, radius * 1.12);
+      ring.addColorStop(0, "rgba(255, 255, 255, 0.03)");
+      ring.addColorStop(1, "rgba(255, 255, 255, 0)");
+      ctx.fillStyle = ring;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius * 1.12, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+      ctx.lineWidth = 1;
+      for (let i = 1; i <= 4; i += 1) {
+        ctx.beginPath();
+        ctx.arc(0, 0, (radius * i) / 4, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      for (let i = 0; i < 8; i += 1) {
+        const angle = (Math.PI * 2 * i) / 8;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+        ctx.stroke();
+      }
+
+      const sweepAngle = state.radar.scan % (Math.PI * 2);
+      ctx.strokeStyle = `rgba(${accent}, 0.7)`;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(sweepAngle) * radius, Math.sin(sweepAngle) * radius);
+      ctx.stroke();
+
+      for (const attack of state.radar.attacks) {
+        if (showShortRange && attack.range > focusLimit) {
+          continue;
+        }
+        if (!showShortRange && attack.range > 1.6) {
+          continue;
+        }
+        const normalized = clamp(attack.range / focusLimit, 0.08, 1);
+        const px = Math.cos(attack.angle) * radius * normalized;
+        const py = Math.sin(attack.angle) * radius * normalized;
+        const type = Skyline.common.getAttackDefinition(attack.typeId);
+        ctx.fillStyle = type.color;
+        ctx.globalAlpha = showShortRange ? 0.9 : 0.6;
+        ctx.beginPath();
+        ctx.arc(px, py, showShortRange ? 5 : 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (showShortRange) {
+          ctx.globalAlpha = 0.82;
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "10px Trebuchet MS, sans-serif";
+          ctx.fillText(type.name.split(" ")[0].toUpperCase(), px + 8, py - 6);
+        }
+      }
+
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = `rgba(${accent}, 0.95)`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = `rgba(${accent}, 0.95)`;
+      ctx.font = "600 12px Trebuchet MS, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(label, 0, -radius - 18);
+      ctx.fillText(showShortRange ? "SHORT RANGE" : "LONG RANGE", 0, radius + 20);
+      ctx.restore();
+    };
+
+    paintScope(leftCenter, "RADAR ALPHA", 1.35, "86, 215, 255", false);
+    paintScope(rightCenter, "RADAR BETA", 0.72, "255, 143, 61", true);
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.font = "600 13px Trebuchet MS, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(`Shield ${state.radar.shield}  |  Wave ${state.radar.wave}  |  Score ${state.radar.score}`, 24, top + 8);
+    ctx.fillText(state.radar.alert, 24, top + 30);
+
+    if (state.radar.flash > 0) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${state.radar.flash * 0.35})`;
+      ctx.fillRect(0, 0, state.width, state.height);
+    }
+  }
+
+  Skyline.radar = {
+    resetRadar,
+    prepareRadarWave,
+    spawnRadarAttack,
+    explodeRadar,
+    deployRadarDefense,
+    updateRadar,
+    drawRadarBackground
+  };
+})();
+
+
+(() => {
+  const Skyline = window.Skyline;
+  const { bindDom, buildIntelLists, buildWeaponButtons, renderModeUi, updateHud, resizeCanvas, showStatus, hideStatus } = Skyline.common;
+  const state = Skyline.state;
+
+  function startMode(mode) {
+    state.activeMode = mode;
+    state.screen = "play";
+    state.lastTime = 0;
+    Skyline.dom.coverScreen.classList.add("hidden");
+    Skyline.dom.radarHud.classList.toggle("hidden", mode !== "radar");
+    document.body.classList.toggle("radar-mode", mode === "radar");
+    renderModeUi();
+
+    if (mode === "afterburn") {
+      Skyline.afterburn.resetAfterburn();
+    } else {
+      Skyline.radar.resetRadar();
+    }
+
+    updateHud();
+  }
+
+  function restartCurrentMode() {
+    startMode(state.activeMode);
+  }
+
+  function showCover() {
+    state.screen = "cover";
+    state.lastTime = 0;
+    Skyline.dom.coverScreen.classList.remove("hidden");
+    Skyline.dom.radarHud.classList.add("hidden");
+    document.body.classList.remove("radar-mode");
+    hideStatus();
+    renderModeUi();
+    updateHud();
+  }
+
+  function endCurrentMode(kicker, title, text) {
+    if (state.activeMode === "afterburn") {
+      state.afterburn.running = false;
+      state.afterburn.gameOver = true;
+    } else {
+      state.radar.running = false;
+      state.radar.gameOver = true;
+    }
+    showStatus(kicker, title, text);
+  }
+
+  function drawBaseBackground() {
+    const ctx = Skyline.ctx;
+    ctx.clearRect(0, 0, state.width, state.height);
+    const background = ctx.createLinearGradient(0, 0, 0, state.height);
+    background.addColorStop(0, "#07111f");
+    background.addColorStop(1, "#05070d");
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, state.width, state.height);
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+    for (const star of state.stars) {
+      const x = star.x * state.width;
+      const y = star.y * (state.horizon * 0.9);
+      const size = 1 + star.z * 1.6;
+      ctx.globalAlpha = 0.25 + star.z * 0.7;
+      ctx.fillRect(x, y, size, size);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function render() {
+    if (state.screen === "cover") {
+      drawBaseBackground();
+      return;
+    }
+
+    if (state.activeMode === "afterburn") {
+      Skyline.afterburn.drawAfterburnScene();
+    } else {
+      Skyline.radar.drawRadarBackground();
+    }
+  }
+
+  function update(dt) {
+    if (state.activeMode === "afterburn") {
+      Skyline.afterburn.updateAfterburn(dt);
+    } else {
+      Skyline.radar.updateRadar(dt);
+    }
+  }
+
+  function loop(time) {
+    const delta = Math.min(0.033, (time - state.lastTime) / 1000 || 0);
+    state.lastTime = time;
+    if (state.screen === "cover") {
+      drawBaseBackground();
+    } else {
+      update(delta);
+      render();
+    }
+    if (state.screen === "cover") {
+      render();
+    }
+    requestAnimationFrame(loop);
+  }
+
+  bindDom();
+  buildIntelLists();
+  buildWeaponButtons();
+  Skyline.common.selectWeaponSlot(state.radar.selectedWeaponSlot);
+  resizeCanvas();
+  renderModeUi();
+  updateHud();
+  showCover();
+
+  Skyline.dom.launchArcade.addEventListener("click", () => startMode("afterburn"));
+  Skyline.dom.launchRadar.addEventListener("click", () => startMode("radar"));
+
+  window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("keydown", (event) => {
+    Skyline.keys.add(event.key);
+
+    if (event.key === "Enter") {
+      if (state.screen === "cover") {
+        startMode(state.activeMode);
+      } else if (state.afterburn.gameOver || state.radar.gameOver) {
+        restartCurrentMode();
+      }
+    }
+
+    if (event.key === " ") {
+      event.preventDefault();
+      if (state.screen !== "cover") {
+        if (state.activeMode === "afterburn") {
+          Skyline.afterburn.fireAfterburnShot();
+        } else {
+          Skyline.radar.deployRadarDefense();
+        }
+      }
+    }
+
+    if (state.activeMode === "radar" && state.screen === "play") {
+      const digit = Number.parseInt(event.key, 10);
+      if (digit >= 1 && digit <= Skyline.weaponSlots.length) {
+        Skyline.common.selectWeaponSlot(digit - 1);
+      }
+    }
+  });
+
+  window.addEventListener("keyup", (event) => {
+    Skyline.keys.delete(event.key);
+  });
+
+  Skyline.startMode = startMode;
+  Skyline.restartCurrentMode = restartCurrentMode;
+  Skyline.showCover = showCover;
+  Skyline.endCurrentMode = endCurrentMode;
+  Skyline.drawBaseBackground = drawBaseBackground;
+  Skyline.loop = loop;
+
+  requestAnimationFrame(loop);
+})();
+
+    </script>
+  </body>
+</html>
