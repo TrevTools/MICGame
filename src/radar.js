@@ -2,6 +2,8 @@
   const Skyline = window.Skyline;
   const { clamp, showStatus, hideStatus, updateHud } = Skyline.common;
   const state = Skyline.state;
+  const radarBackgroundImage = new Image();
+  radarBackgroundImage.src = "../src/img/Radar.png";
 
   function resetRadar() {
     const radar = state.radar;

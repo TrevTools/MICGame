@@ -9,6 +9,7 @@
     state.lastTime = 0;
     Skyline.dom.coverScreen.classList.add("hidden");
     Skyline.dom.radarHud.classList.toggle("hidden", mode !== "radar");
+    document.body.classList.remove("cover-visible");
     document.body.classList.toggle("radar-mode", mode === "radar");
     renderModeUi();
 
@@ -30,6 +31,7 @@
     state.lastTime = 0;
     Skyline.dom.coverScreen.classList.remove("hidden");
     Skyline.dom.radarHud.classList.add("hidden");
+    document.body.classList.add("cover-visible");
     document.body.classList.remove("radar-mode");
     hideStatus();
     renderModeUi();

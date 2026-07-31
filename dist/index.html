@@ -113,6 +113,10 @@ h1 {
   box-shadow: var(--shadow);
 }
 
+.cover-visible .hud-bar {
+  display: none;
+}
+
 canvas {
   width: 100%;
   height: 100%;
@@ -1440,6 +1444,8 @@ canvas {
   const Skyline = window.Skyline;
   const { clamp, showStatus, hideStatus, updateHud } = Skyline.common;
   const state = Skyline.state;
+  const radarBackgroundImage = new Image();
+  radarBackgroundImage.src = "../src/img/Radar.png";
 
   function resetRadar() {
     const radar = state.radar;
@@ -1750,6 +1756,7 @@ canvas {
     state.lastTime = 0;
     Skyline.dom.coverScreen.classList.add("hidden");
     Skyline.dom.radarHud.classList.toggle("hidden", mode !== "radar");
+    document.body.classList.remove("cover-visible");
     document.body.classList.toggle("radar-mode", mode === "radar");
     renderModeUi();
 
@@ -1771,6 +1778,7 @@ canvas {
     state.lastTime = 0;
     Skyline.dom.coverScreen.classList.remove("hidden");
     Skyline.dom.radarHud.classList.add("hidden");
+    document.body.classList.add("cover-visible");
     document.body.classList.remove("radar-mode");
     hideStatus();
     renderModeUi();
